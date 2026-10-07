@@ -6,8 +6,8 @@ Currently I am using C , GCC Compiler , SDL2 , MSYS2(UCRT64).
 Dependency Structure :
 
 ```text
-main.c
-   |
+                  main.c
+                    |
    +----------------+----------------+
    |                |                |
  game.c          input.c        renderer.c
