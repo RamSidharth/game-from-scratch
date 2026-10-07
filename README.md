@@ -5,7 +5,7 @@ Currently I am using C , GCC Compiler , SDL2 , MSYS2(UCRT64).
 
 Dependency Structure :
 
-                    ```text
+```text
 main.c
    |
    +----------------+----------------+
