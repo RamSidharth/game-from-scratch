@@ -15,7 +15,20 @@ typedef struct
 } Renderer;
 
 int renderer_init(Renderer* renderer);
-void renderer_render(Renderer* renderer, const Game* game);
+
+void renderer_render(
+    Renderer* renderer,
+    const Game* game,
+    int mouseX,
+    int mouseY
+);
+
+int renderer_menu_start_button_contains(
+    Renderer* renderer,
+    int mouseX,
+    int mouseY
+);
+
 void renderer_cleanup(Renderer* renderer);
 
 #endif

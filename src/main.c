@@ -3,13 +3,12 @@
 #include "renderer.h"
 
 #include <SDL2/SDL.h>
-#include <stdlib.h>
 
+#include <stdlib.h>
 #include <time.h>
 
 int main(int argc, char* argv[])
 {
-
     (void)argc;
     (void)argv;
 
@@ -19,10 +18,27 @@ int main(int argc, char* argv[])
     Input input;
     Game game;
 
-    renderer_init(&renderer);
-    input_init(&input);
-    game_reset(&game);
+    /*
+        Initialize renderer
+    */
+    if (!renderer_init(&renderer))
+    {
+        return 1;
+    }
 
+    /*
+        Initialize input
+    */
+    input_init(&input);
+
+    /*
+        Initialize game
+    */
+    game_init(&game);
+
+    /*
+        High-resolution timer
+    */
     Uint64 previousCounter =
         SDL_GetPerformanceCounter();
 
@@ -31,6 +47,9 @@ int main(int argc, char* argv[])
 
     while (input.running)
     {
+        /*
+            Calculate delta time
+        */
         Uint64 currentCounter =
             SDL_GetPerformanceCounter();
 
@@ -42,32 +61,98 @@ int main(int argc, char* argv[])
 
         previousCounter = currentCounter;
 
+        /*
+            Prevent huge time jumps
+        */
         if (deltaTime > 0.1f)
+        {
             deltaTime = 0.1f;
+        }
 
+        /*
+            Process input
+        */
         input_process(
             &input,
             renderer.window
         );
 
-        if (input.restart && game.gameOver)
+        /*
+            MENU
+        */
+        if (game.state == GAME_STATE_MENU)
         {
-            game_reset(&game);
-            input.restart = 0;
+            /*
+                ENTER starts the game
+            */
+            if (input.start)
+            {
+                game_start(&game);
+            }
+
+            /*
+                Mouse click on START GAME
+            */
+            else if (input.mouseClicked &&
+                     renderer_menu_start_button_contains(
+                         &renderer,
+                         input.mouseX,
+                         input.mouseY
+                     ))
+            {
+                game_start(&game);
+            }
         }
 
+        /*
+            PLAYING
+        */
+        else if (game.state == GAME_STATE_PLAYING)
+        {
+            if (input.restart)
+            {
+                game_restart(&game);
+            }
+        }
+
+        /*
+            GAME OVER
+        */
+        else if (game.state == GAME_STATE_GAME_OVER)
+        {
+            if (input.restart)
+            {
+                game_restart(&game);
+            }
+            else if (input.start)
+            {
+                game.state = GAME_STATE_MENU;
+            }
+        }
+
+        /*
+            Update gameplay
+        */
         game_update(
             &game,
             input_get_keyboard(),
             deltaTime
         );
 
+        /*
+            Render
+        */
         renderer_render(
             &renderer,
-            &game
+            &game,
+            input.mouseX,
+            input.mouseY
         );
     }
 
+    /*
+        Cleanup
+    */
     renderer_cleanup(&renderer);
 
     return 0;

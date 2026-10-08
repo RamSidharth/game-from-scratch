@@ -3,14 +3,29 @@
 
 #include <SDL2/SDL.h>
 
-void game_reset(Game* game)
+void game_init(Game* game)
+{
+    game->score = 0;
+    game->targetTimer = TARGET_TIME;
+    game->state = GAME_STATE_MENU;
+
+    player_reset(&game->player);
+    target_spawn(&game->target);
+}
+
+void game_start(Game* game)
 {
     player_reset(&game->player);
     target_spawn(&game->target);
 
     game->score = 0;
     game->targetTimer = TARGET_TIME;
-    game->gameOver = 0;
+    game->state = GAME_STATE_PLAYING;
+}
+
+void game_restart(Game* game)
+{
+    game_start(game);
 }
 
 void game_update(
@@ -19,30 +34,36 @@ void game_update(
     float deltaTime
 )
 {
-    if (game->gameOver)
+    if (game->state != GAME_STATE_PLAYING)
     {
         return;
     }
 
-    /* Update player */
+    /*
+        Update player
+    */
     player_update(
         &game->player,
         keyboard,
         deltaTime
     );
 
-    /* Update target timer */
+    /*
+        Update target timer
+    */
     game->targetTimer -= deltaTime;
 
     if (game->targetTimer <= 0.0f)
     {
         game->targetTimer = 0.0f;
-        game->gameOver = 1;
+        game->state = GAME_STATE_GAME_OVER;
 
         return;
     }
 
-    /* Build collision rectangles */
+    /*
+        Build collision rectangles
+    */
     SDL_Rect playerRect =
     {
         (int)game->player.x,
@@ -59,7 +80,9 @@ void game_update(
         TARGET_SIZE
     };
 
-    /* Collision */
+    /*
+        Collision
+    */
     if (SDL_HasIntersection(
             &playerRect,
             &targetRect))
